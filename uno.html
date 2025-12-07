@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>UNO Attack RNG</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #ffefba, #ff8800);
+    }
+
+    .card {
+      background: #111;
+      color: #fff;
+      padding: 24px 20px;
+      border-radius: 18px;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      border: 3px solid #ff0000;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at 0 0, #ffff00 0, transparent 55%),
+        radial-gradient(circle at 100% 100%, #00ffea 0, transparent 50%);
+      opacity: 0.12;
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-bottom: 18px;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff0000, #ffcc00);
+      color: #fff;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s;
+    }
+
+    button:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      filter: brightness(0.95);
+    }
+
+    .result {
+      margin-top: 18px;
+      font-size: 22px;
+      font-weight: 700;
+      min-height: 30px;
+    }
+
+    .detail {
+      margin-top: 4px;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .history-title {
+      margin-top: 16px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+
+    .history {
+      margin-top: 4px;
+      max-height: 120px;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .history span {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .config {
+      margin-top: 12px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .config input {
+      width: 54px;
+      padding: 2px 4px;
+      border-radius: 6px;
+      border: none;
+      margin-left: 4px;
+      text-align: center;
+    }
+
+    .config label {
+      margin: 0 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>UNO Attack RNG</h1>
+    <div class="subtitle">Tekan tombol seperti menekan launcher UNO Attack</div>
+
+    <button id="btnFire">UNO ATTACK!</button>
+
+    <div class="result" id="result">Siap bermain 👀</div>
+    <div class="detail" id="detail">Belum ada hasil</div>
+
+    <div class="config">
+      <div>
+        <label>
+          % Aman:
+          <input type="number" id="safeChance" value="60" min="0" max="100" />
+        </label>
+        <label>
+          Max kartu:
+          <input type="number" id="maxCards" value="4" min="1" max="10" />
+        </label>
+      </div>
+      <div>(Ubah jika mau peluang & jumlah kartu berbeda)</div>
+    </div>
+
+    <div class="history-title">Riwayat</div>
+    <div class="history" id="history"></div>
+  </div>
+
+  <script>
+    const btn = document.getElementById("btnFire");
+    const resultEl = document.getElementById("result");
+    const detailEl = document.getElementById("detail");
+    const historyEl = document.getElementById("history");
+    const safeChanceInput = document.getElementById("safeChance");
+    const maxCardsInput = document.getElementById("maxCards");
+
+    function addHistory(text) {
+      const span = document.createElement("span");
+      const time = new Date().toLocaleTimeString();
+      span.textContent = `[${time}] ${text}`;
+      historyEl.prepend(span);
+    }
+
+    function fireLauncher() {
+      const safeChance = Math.max(
+        0,
+        Math.min(100, Number(safeChanceInput.value) || 0)
+      );
+      const maxCards = Math.max(1, Math.min(10, Number(maxCardsInput.value) || 1));
+
+      const roll = Math.random() * 100; // 0 - 100
+      let cards = 0;
+      let text = "";
+
+      if (roll < safeChance) {
+        // Aman: 0 kartu
+        cards = 0;
+        text = "AMAN! 🎉 Tidak ada kartu keluar.";
+        resultEl.textContent = "0 KARTU";
+      } else {
+        // Kena serang: 1 - maxCards kartu
+        cards = Math.floor(Math.random() * maxCards) + 1;
+        text = `KENA! Ambil ${cards} kartu! 😈`;
+        resultEl.textContent = `${cards} KARTU`;
+      }
+
+      detailEl.textContent = text;
+      addHistory(text);
+    }
+
+    btn.addEventListener("click", fireLauncher);
+  </script>
+</body>
+</html>
