@@ -1,35 +1,107 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <title>UNO ATTACK RNG</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
-    body {
-      margin: 0; min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      background: radial-gradient(circle at top, #ffefba, #ff8800);
-    }
-    .card {
-      background: #111; color: #fff; padding: 24px 20px;
-      border-radius: 18px; border: 3px solid #ff0000;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.3);
-      max-width: 420px; width: 100%; text-align: center;
-    }
-    button {
-      padding: 14px 28px; font-size: 18px; border-radius: 999px;
-      background: linear-gradient(135deg, #ff0000, #ffcc00);
-      color: #fff; border: none; cursor: pointer;
-    }
-    .result { margin-top: 18px; font-size: 22px; font-weight: 700; }
-    .history { background: rgba(255,255,255,0.06); padding: 8px; margin-top: 10px; }
-  </style>
+<meta charset="UTF-8" />
+<title>UNO TOOLSET</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+
+  body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+  }
+
+  /* MENU AWAL */
+  .menu {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .menu button {
+    padding: 16px 40px;
+    font-size: 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff0000, #ffcc00);
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 700;
+    width: 260px;
+  }
+
+  /* HALAMAN TOOLS */
+  .page { display: none; padding: 20px; }
+
+  .card {
+    background: #111;
+    padding: 20px;
+    border-radius: 16px;
+    border: 2px solid #ff0000;
+    max-width: 460px;
+    margin: auto;
+    text-align: center;
+  }
+
+  button {
+    padding: 12px 26px;
+    font-size: 18px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #ff0000, #ffcc00);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  input {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    margin: 6px 0;
+  }
+
+  .history {
+    background: rgba(255,255,255,0.06);
+    padding: 10px;
+    margin-top: 10px;
+    height: 130px;
+    overflow-y: auto;
+  }
+
+  .player-box {
+    padding: 10px;
+    margin-top: 12px;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    background: #141414;
+  }
+
+  .active {
+    border: 2px solid #ffcc00 !important;
+    background: #222;
+  }
+</style>
 </head>
 <body>
 
+<!-- MENU AWAL -->
+<div id="menu" class="menu">
+  <h1>UNO TOOLSET</h1>
+  <button onclick="openPage('rng')">🎲 RNG ATTACK</button>
+  <button onclick="openPage('player')">👥 PLAYER MANAGER</button>
+</div>
+
+<!-- ============================ -->
+<!-- PAGE 1 — RNG ATTACK -->
+<!-- ============================ -->
+<div id="rng" class="page">
   <div class="card">
-    <h1>HAPIS BESEMAH UNO</h1>
+    <h1>RNG UNO ATTACK</h1>
+
     <button id="btnFire">UNO ATTACK!</button>
 
     <div class="result" id="result">Siap bermain 👀</div>
@@ -43,57 +115,661 @@
     </div>
 
     <div class="history" id="history"></div>
+
+    <button style="margin-top:20px" onclick="backMenu()">⬅ KEMBALI</button>
   </div>
+</div>
 
-  <!-- Suara -->
-  <audio id="soundKena" src="kena.mp3" preload="auto"></audio>
-  <audio id="soundAman" src="aman.mp3" preload="auto"></audio>
+<!-- ============================ -->
+<!-- PAGE 2 — PLAYER MANAGER -->
+<!-- ============================ -->
+<div id="player" class="page">
+  <div class="card">
+    <h1>PLAYER MANAGER</h1>
 
-  <script>
-    const btn = document.getElementById("btnFire");
-    const historyEl = document.getElementById("history");
+    <input type="text" id="playerName" placeholder="Nama pemain..." />
+    <button onclick="addPlayer()">Tambah Pemain</button>
 
-    const soundKena = document.getElementById("soundKena");
-    const soundAman = document.getElementById("soundAman");
+    <div id="playerList" class="player-box"></div>
 
-    function addHistory(text) {
-      const span = document.createElement("span");
-      span.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
-      historyEl.prepend(span);
-    }
+    <h3 id="currentTurn">Belum ada pemain</h3>
 
-    btn.addEventListener("click", () => {
-      const safeChance = Number(document.getElementById("safeChance").value);
-      const maxCards = Number(document.getElementById("maxCards").value);
+    <button onclick="nextTurn()">➡ Lanjut</button>
+    <button onclick="unoCall()">UNO!</button>
 
-      const result = Math.random() * 100;
+    <button style="margin-top:20px" onclick="backMenu()">⬅ KEMBALI</button>
+  </div>
+</div>
 
-      let output = "";
-      let resultText = "";
+<!-- SUARA -->
+<audio id="soundKena" src="kena.mp3" preload="auto"></audio>
+<audio id="soundAman" src="aman.mp3" preload="auto"></audio>
+<audio id="soundUNO" src="uno.mp3" preload="auto"></audio>
+<audio id="soundNext" src="next.mp3" preload="auto"></audio>
 
-      if (result < safeChance) {
-        // AMAN
-        output = "0 KARTU";
-        resultText = "AMAN! 🎉 Tidak ada kartu keluar.";
-        soundAman.currentTime = 0;
-        soundAman.play();
-      } else {
-        // KENA
-        const cards = Math.floor(Math.random() * maxCards) + 1;
-        output = `${cards} KARTU`;
-        resultText = `KENA! Ambil ${cards} kartu! 😈`;
+<script>
+/* ============ MENU HANDLER ============ */
+function openPage(id) {
+  document.getElementById("menu").style.display = "none";
+  document.getElementById(id).style.display = "block";
+}
 
-        soundKena.currentTime = 0;
-        soundKena.play();
-      }
+function backMenu() {
+  document.querySelectorAll('.page').forEach(p => p.style.display = "none");
+  document.getElementById("menu").style.display = "flex";
+}
 
-      document.getElementById("result").textContent = output;
-      document.getElementById("detail").textContent = resultText;
+/* ===================================== */
+/* ========== RNG ATTACK TOOL ========== */
+/* ===================================== */
 
-      addHistory(resultText);
-    });
-  </script>
+const btn = document.getElementById("btnFire");
+const historyEl = document.getElementById("history");
+const soundKena = document.getElementById("soundKena");
+const soundAman = document.getElementById("soundAman");
+
+function addHistory(text) {
+  const span = document.createElement("div");
+  span.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+  historyEl.prepend(span);
+}
+
+btn.addEventListener("click", () => {
+  const safeChance = Number(document.getElementById("safeChance").value);
+  const maxCards = Number(document.getElementById("maxCards").value);
+  const result = Math.random() * 100;
+
+  let output = "";
+  let resultText = "";
+
+  if (result < safeChance) {
+    output = "0 KARTU";
+    resultText = "AMAN! 🎉 Tidak ada kartu keluar.";
+    soundAman.currentTime = 0;
+    soundAman.play();
+  } else {
+    const cards = Math.floor(Math.random() * maxCards) + 1;
+    output = `${cards} KARTU`;
+    resultText = `KENA! Ambil ${cards} kartu! 😈`;
+
+    soundKena.currentTime = 0;
+    soundKena.play();
+  }
+
+  document.getElementById("result").textContent = output;
+  document.getElementById("detail").textContent = resultText;
+
+  addHistory(resultText);
+});
+
+/* ===================================== */
+/* ========= PLAYER MANAGER ============ */
+/* ===================================== */
+
+let players = [];
+let turn = 0;
+
+function addPlayer() {
+  const name = document.getElementById("playerName").value.trim();
+  if (!name) return;
+
+  players.push(name);
+  document.getElementById("playerName").value = "";
+
+  updatePlayerList();
+}
+
+function updatePlayerList() {
+  const box = document.getElementById("playerList");
+  box.innerHTML = "";
+
+  players.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.textContent = p;
+    div.style.padding = "6px";
+
+    if (i === turn) div.classList.add("active");
+
+    box.appendChild(div);
+  });
+
+  if (players.length > 0) {
+    document.getElementById("currentTurn").textContent = "Giliran: " + players[turn];
+  }
+}
+
+function nextTurn() {
+  if (players.length === 0) return;
+
+  turn = (turn + 1) % players.length;
+
+  document.getElementById("soundNext").currentTime = 0;
+  document.getElementById("soundNext").play();
+
+  updatePlayerList();
+}
+
+function unoCall() {
+  document.getElementById("soundUNO").currentTime = 0;
+  document.getElementById("soundUNO").play();
+}
+</script>
+
+</body>
+</html> <!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<title>UNO TOOLSET</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+
+  body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+  }
+
+  /* MENU AWAL */
+  .menu {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .menu button {
+    padding: 16px 40px;
+    font-size: 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff0000, #ffcc00);
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 700;
+    width: 260px;
+  }
+
+  /* HALAMAN TOOLS */
+  .page { display: none; padding: 20px; }
+
+  .card {
+    background: #111;
+    padding: 20px;
+    border-radius: 16px;
+    border: 2px solid #ff0000;
+    max-width: 460px;
+    margin: auto;
+    text-align: center;
+  }
+
+  button {
+    padding: 12px 26px;
+    font-size: 18px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #ff0000, #ffcc00);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  input {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    margin: 6px 0;
+  }
+
+  .history {
+    background: rgba(255,255,255,0.06);
+    padding: 10px;
+    margin-top: 10px;
+    height: 130px;
+    overflow-y: auto;
+  }
+
+  .player-box {
+    padding: 10px;
+    margin-top: 12px;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    background: #141414;
+  }
+
+  .active {
+    border: 2px solid #ffcc00 !important;
+    background: #222;
+  }
+</style>
+</head>
+<body>
+
+<!-- MENU AWAL -->
+<div id="menu" class="menu">
+  <h1>UNO TOOLSET</h1>
+  <button onclick="openPage('rng')">🎲 RNG ATTACK</button>
+  <button onclick="openPage('player')">👥 PLAYER MANAGER</button>
+</div>
+
+<!-- ============================ -->
+<!-- PAGE 1 — RNG ATTACK -->
+<!-- ============================ -->
+<div id="rng" class="page">
+  <div class="card">
+    <h1>RNG UNO ATTACK</h1>
+
+    <button id="btnFire">UNO ATTACK!</button>
+
+    <div class="result" id="result">Siap bermain 👀</div>
+    <div id="detail">Belum ada hasil</div>
+
+    <div>
+      % Aman:
+      <input type="number" id="safeChance" value="60" min="0" max="100">
+      Max kartu:
+      <input type="number" id="maxCards" value="4" min="1" max="10">
+    </div>
+
+    <div class="history" id="history"></div>
+
+    <button style="margin-top:20px" onclick="backMenu()">⬅ KEMBALI</button>
+  </div>
+</div>
+
+<!-- ============================ -->
+<!-- PAGE 2 — PLAYER MANAGER -->
+<!-- ============================ -->
+<div id="player" class="page">
+  <div class="card">
+    <h1>PLAYER MANAGER</h1>
+
+    <input type="text" id="playerName" placeholder="Nama pemain..." />
+    <button onclick="addPlayer()">Tambah Pemain</button>
+
+    <div id="playerList" class="player-box"></div>
+
+    <h3 id="currentTurn">Belum ada pemain</h3>
+
+    <button onclick="nextTurn()">➡ Lanjut</button>
+    <button onclick="unoCall()">UNO!</button>
+
+    <button style="margin-top:20px" onclick="backMenu()">⬅ KEMBALI</button>
+  </div>
+</div>
+
+<!-- SUARA -->
+<audio id="soundKena" src="kena.mp3" preload="auto"></audio>
+<audio id="soundAman" src="aman.mp3" preload="auto"></audio>
+<audio id="soundUNO" src="uno.mp3" preload="auto"></audio>
+<audio id="soundNext" src="next.mp3" preload="auto"></audio>
+
+<script>
+/* ============ MENU HANDLER ============ */
+function openPage(id) {
+  document.getElementById("menu").style.display = "none";
+  document.getElementById(id).style.display = "block";
+}
+
+function backMenu() {
+  document.querySelectorAll('.page').forEach(p => p.style.display = "none");
+  document.getElementById("menu").style.display = "flex";
+}
+
+/* ===================================== */
+/* ========== RNG ATTACK TOOL ========== */
+/* ===================================== */
+
+const btn = document.getElementById("btnFire");
+const historyEl = document.getElementById("history");
+const soundKena = document.getElementById("soundKena");
+const soundAman = document.getElementById("soundAman");
+
+function addHistory(text) {
+  const span = document.createElement("div");
+  span.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+  historyEl.prepend(span);
+}
+
+btn.addEventListener("click", () => {
+  const safeChance = Number(document.getElementById("safeChance").value);
+  const maxCards = Number(document.getElementById("maxCards").value);
+  const result = Math.random() * 100;
+
+  let output = "";
+  let resultText = "";
+
+  if (result < safeChance) {
+    output = "0 KARTU";
+    resultText = "AMAN! 🎉 Tidak ada kartu keluar.";
+    soundAman.currentTime = 0;
+    soundAman.play();
+  } else {
+    const cards = Math.floor(Math.random() * maxCards) + 1;
+    output = `${cards} KARTU`;
+    resultText = `KENA! Ambil ${cards} kartu! 😈`;
+
+    soundKena.currentTime = 0;
+    soundKena.play();
+  }
+
+  document.getElementById("result").textContent = output;
+  document.getElementById("detail").textContent = resultText;
+
+  addHistory(resultText);
+});
+
+/* ===================================== */
+/* ========= PLAYER MANAGER ============ */
+/* ===================================== */
+
+let players = [];
+let turn = 0;
+
+function addPlayer() {
+  const name = document.getElementById("playerName").value.trim();
+  if (!name) return;
+
+  players.push(name);
+  document.getElementById("playerName").value = "";
+
+  updatePlayerList();
+}
+
+function updatePlayerList() {
+  const box = document.getElementById("playerList");
+  box.innerHTML = "";
+
+  players.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.textContent = p;
+    div.style.padding = "6px";
+
+    if (i === turn) div.classList.add("active");
+
+    box.appendChild(div);
+  });
+
+  if (players.length > 0) {
+    document.getElementById("currentTurn").textContent = "Giliran: " + players[turn];
+  }
+}
+
+function nextTurn() {
+  if (players.length === 0) return;
+
+  turn = (turn + 1) % players.length;
+
+  document.getElementById("soundNext").currentTime = 0;
+  document.getElementById("soundNext").play();
+
+  updatePlayerList();
+}
+
+function unoCall() {
+  document.getElementById("soundUNO").currentTime = 0;
+  document.getElementById("soundUNO").play();
+}
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<title>UNO TOOLSET</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+
+  body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+  }
+
+  /* MENU AWAL */
+  .menu {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .menu button {
+    padding: 16px 40px;
+    font-size: 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff0000, #ffcc00);
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 700;
+    width: 260px;
+  }
+
+  /* HALAMAN TOOLS */
+  .page { display: none; padding: 20px; }
+
+  .card {
+    background: #111;
+    padding: 20px;
+    border-radius: 16px;
+    border: 2px solid #ff0000;
+    max-width: 460px;
+    margin: auto;
+    text-align: center;
+  }
+
+  button {
+    padding: 12px 26px;
+    font-size: 18px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #ff0000, #ffcc00);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  input {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    margin: 6px 0;
+  }
+
+  .history {
+    background: rgba(255,255,255,0.06);
+    padding: 10px;
+    margin-top: 10px;
+    height: 130px;
+    overflow-y: auto;
+  }
+
+  .player-box {
+    padding: 10px;
+    margin-top: 12px;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    background: #141414;
+  }
+
+  .active {
+    border: 2px solid #ffcc00 !important;
+    background: #222;
+  }
+</style>
+</head>
+<body>
+
+<!-- MENU AWAL -->
+<div id="menu" class="menu">
+  <h1>UNO TOOLSET</h1>
+  <button onclick="openPage('rng')">🎲 RNG ATTACK</button>
+  <button onclick="openPage('player')">👥 PLAYER MANAGER</button>
+</div>
+
+<!-- ============================ -->
+<!-- PAGE 1 — RNG ATTACK -->
+<!-- ============================ -->
+<div id="rng" class="page">
+  <div class="card">
+    <h1>RNG UNO ATTACK</h1>
+
+    <button id="btnFire">UNO ATTACK!</button>
+
+    <div class="result" id="result">Siap bermain 👀</div>
+    <div id="detail">Belum ada hasil</div>
+
+    <div>
+      % Aman:
+      <input type="number" id="safeChance" value="60" min="0" max="100">
+      Max kartu:
+      <input type="number" id="maxCards" value="4" min="1" max="10">
+    </div>
+
+    <div class="history" id="history"></div>
+
+    <button style="margin-top:20px" onclick="backMenu()">⬅ KEMBALI</button>
+  </div>
+</div>
+
+<!-- ============================ -->
+<!-- PAGE 2 — PLAYER MANAGER -->
+<!-- ============================ -->
+<div id="player" class="page">
+  <div class="card">
+    <h1>PLAYER MANAGER</h1>
+
+    <input type="text" id="playerName" placeholder="Nama pemain..." />
+    <button onclick="addPlayer()">Tambah Pemain</button>
+
+    <div id="playerList" class="player-box"></div>
+
+    <h3 id="currentTurn">Belum ada pemain</h3>
+
+    <button onclick="nextTurn()">➡ Lanjut</button>
+    <button onclick="unoCall()">UNO!</button>
+
+    <button style="margin-top:20px" onclick="backMenu()">⬅ KEMBALI</button>
+  </div>
+</div>
+
+<!-- SUARA -->
+<audio id="soundKena" src="kena.mp3" preload="auto"></audio>
+<audio id="soundAman" src="aman.mp3" preload="auto"></audio>
+<audio id="soundUNO" src="uno.mp3" preload="auto"></audio>
+<audio id="soundNext" src="next.mp3" preload="auto"></audio>
+
+<script>
+/* ============ MENU HANDLER ============ */
+function openPage(id) {
+  document.getElementById("menu").style.display = "none";
+  document.getElementById(id).style.display = "block";
+}
+
+function backMenu() {
+  document.querySelectorAll('.page').forEach(p => p.style.display = "none");
+  document.getElementById("menu").style.display = "flex";
+}
+
+/* ===================================== */
+/* ========== RNG ATTACK TOOL ========== */
+/* ===================================== */
+
+const btn = document.getElementById("btnFire");
+const historyEl = document.getElementById("history");
+const soundKena = document.getElementById("soundKena");
+const soundAman = document.getElementById("soundAman");
+
+function addHistory(text) {
+  const span = document.createElement("div");
+  span.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+  historyEl.prepend(span);
+}
+
+btn.addEventListener("click", () => {
+  const safeChance = Number(document.getElementById("safeChance").value);
+  const maxCards = Number(document.getElementById("maxCards").value);
+  const result = Math.random() * 100;
+
+  let output = "";
+  let resultText = "";
+
+  if (result < safeChance) {
+    output = "0 KARTU";
+    resultText = "AMAN! 🎉 Tidak ada kartu keluar.";
+    soundAman.currentTime = 0;
+    soundAman.play();
+  } else {
+    const cards = Math.floor(Math.random() * maxCards) + 1;
+    output = `${cards} KARTU`;
+    resultText = `KENA! Ambil ${cards} kartu! 😈`;
+
+    soundKena.currentTime = 0;
+    soundKena.play();
+  }
+
+  document.getElementById("result").textContent = output;
+  document.getElementById("detail").textContent = resultText;
+
+  addHistory(resultText);
+});
+
+/* ===================================== */
+/* ========= PLAYER MANAGER ============ */
+/* ===================================== */
+
+let players = [];
+let turn = 0;
+
+function addPlayer() {
+  const name = document.getElementById("playerName").value.trim();
+  if (!name) return;
+
+  players.push(name);
+  document.getElementById("playerName").value = "";
+
+  updatePlayerList();
+}
+
+function updatePlayerList() {
+  const box = document.getElementById("playerList");
+  box.innerHTML = "";
+
+  players.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.textContent = p;
+    div.style.padding = "6px";
+
+    if (i === turn) div.classList.add("active");
+
+    box.appendChild(div);
+  });
+
+  if (players.length > 0) {
+    document.getElementById("currentTurn").textContent = "Giliran: " + players[turn];
+  }
+}
+
+function nextTurn() {
+  if (players.length === 0) return;
+
+  turn = (turn + 1) % players.length;
+
+  document.getElementById("soundNext").currentTime = 0;
+  document.getElementById("soundNext").play();
+
+  updatePlayerList();
+}
+
+function unoCall() {
+  document.getElementById("soundUNO").currentTime = 0;
+  document.getElementById("soundUNO").play();
+}
+</script>
+
 </body>
 </html>
-
-
